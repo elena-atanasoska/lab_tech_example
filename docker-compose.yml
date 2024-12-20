@@ -1,0 +1,38 @@
+version: "3.3"
+services:
+  database:
+    image: postgres:16.1
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: example_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "54323:5432"
+    container_name: database
+  backend:
+    build:
+      context: ./demo
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "9090:8080"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://database:5432/example_db
+      - server.port=8080
+    depends_on:
+      - database
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "5000:3000"
+    environment:
+      - "REACT_APP_BACKEND_HOST=http://localhost:9090"
+volumes:
+  db-data:
+
